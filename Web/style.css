@@ -7,11 +7,29 @@
 	--font-code: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console,
 		monospace;
 }
+
 * {
 	padding: 0;
 	margin: 0;
 }
 
+h1{
+	text-align: center;
+}
+
+*{
+	margin: 3rem;
+}
+td{
+	text-align: center;
+}
+table{
+	width: 50%;
+}
+html{
+	overflow-x: hidden;
+	width: 100%;
+}
 body {
 	font-family: Inter, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
@@ -21,7 +39,18 @@ body {
 	line-height: 1.75;
 	line-height: var(--font-content-line-height);
 	text-rendering: optimizeSpeed;
+	width: 100%;
+
 }
+
+.container{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 3rem;
+	width: 100%;
+}
+
 
 canvas {
 	background: #eee;

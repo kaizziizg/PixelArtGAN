@@ -1,3 +1,13 @@
+const websocket = new WebSocket("ws://192.168.0.102:8001/");
+const params = new URLSearchParams(window.location.search);
+let name = "noName";
+if (params.has("name")) {
+	name = params.get("name");
+}
+var players = new Map();
+
+console.log(`Hi ,${name}`);
+
 const canvas = document.getElementById("game");
 const ctx = document.getElementById("game").getContext("2d");
 // set cache canvas to fix flicker screen
@@ -131,6 +141,7 @@ let jump = false;
 
 function updateCanvas() {
 	draw();
+	
 	ctx.clearRect(0, 0, 480, 320);
 	ctx.drawImage(tempCanvas, 0, 0);
 }
@@ -138,8 +149,20 @@ function updateCanvas() {
 function draw() {
 	if (rightPressed && playerPosx < canvas.width - 24 * size) {
 		playerPosx += speed;
+		const event = {
+			type: "move",
+			posX: playerPosx,
+			posY: playerPosy,
+		};
+		websocket.send(JSON.stringify(event));
 	} else if (leftPressed && playerPosx > 0) {
 		playerPosx -= speed;
+		const event = {
+			type: "move",
+			posX: playerPosx,
+			posY: playerPosy,
+		};
+		websocket.send(JSON.stringify(event));
 	}
 	if (jumpPressed && playerPosy == floor) {
 		jump = true;
@@ -167,6 +190,7 @@ function draw() {
 		24 * size,
 		24 * size
 	);
+	
 }
 
 let p2Pos = canvas.width / 2 + 100;
@@ -190,8 +214,8 @@ function drawOther() {
 	}
 	p3Pos += 1 * p3Dir;
 
-	tempCtx.drawImage(msg, p3Pos , floor - 30 * size, 48, 96);
-	tempCtx.drawImage(angry, p2Pos , floor - 35 * size, 48, 96);
+	tempCtx.drawImage(msg, p3Pos, floor - 30 * size, 48, 96);
+	tempCtx.drawImage(angry, p2Pos, floor - 35 * size, 48, 96);
 
 	tempCtx.drawImage(
 		player2,
@@ -218,4 +242,94 @@ function drawOther() {
 
 	angry.src = angryurl[Math.floor(time++ / 15) % 4];
 	msg.src = msgurl[Math.floor(time++ / 30) % 6];
+	
+	for (let key of players.keys()) {
+		if(key!=name){
+			drawOnline(key);
+		}
+		
+	}
 }
+
+class OnlinePlayer {
+	constructor(n,x,y) {
+		this.name = n;
+		this.PosX = x;//240 - (24 * 2) / 2;
+		this.PosY = y;//320 - 24 * 2 - 30;
+	}
+	update(x,y){
+		this.PosX =x
+		this.PosY =y
+	}
+	show() {
+		return `${this.name} at (${this.PosX},${this.PosY})`;
+	}
+}
+
+function drawOnline(name) {
+	//console.log(`kaizz at ${players[name].PosX}`)
+	tempCtx.drawImage(
+		player,
+		24 * (Math.floor(time / 30) % 4),
+		0,
+		24,
+		24,
+		players.get(name).PosX,
+		players.get(name).PosY,
+		24 * size,
+		24 * size
+	);
+}
+
+function initGame(websocket) {
+	websocket.addEventListener("open", () => {
+		// Send an "init" event according to who is connecting.
+		const params = new URLSearchParams(window.location.search);
+		let event = { join: name };
+		websocket.send(JSON.stringify(event));
+	});
+}
+
+function receiveMoves(websocket) {
+	websocket.addEventListener("message", ({ data }) => {
+		const event = JSON.parse(data);
+		switch (event.type) {
+			case "move":
+				//console.log(event.player + event.posX + event.posY);
+				// players[event.player].posX = event.posX;
+				// players[event.player].posY = event.posY;
+				//players.set(event.player,players[event.player].update(event.posX,event.posY))
+				let n = event.player
+				
+				// let np = new OnlinePlayer(event.player,event.posX,event.posY)
+				// players.set(event.player, np)
+				players.get(n).update(event.posX,event.posY)
+				console.log(players.get(n).show());
+				// players[n].PosX=event.posX
+				// players[n].posY=event.posY
+				//console.log(players[n].show())
+				break;
+			case "msg":
+				console.log(event.msg);
+				break;
+			case "init":
+				console.log(event.name);
+				let p = new OnlinePlayer(event.name,216,242);
+				//players[event.name] = p;
+				players.set(event.name, p);
+				// players.set(event.name, p);
+				console.log(players.get(event.name).show());
+				
+				break;
+			default:
+				throw new Error(`Unsupported event type: ${event.type}.`);
+		}
+	});
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+	// Open the WebSocket connection and register event handlers.
+
+	initGame(websocket);
+	receiveMoves(websocket);
+});
