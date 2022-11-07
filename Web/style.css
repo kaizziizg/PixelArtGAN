@@ -1,0 +1,31 @@
+:root {
+    --font-fallback: BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+		"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+		sans-serif;
+    --font-body: Inter, var(--font-fallback);
+	--font-heading: Inter, var(--font-fallback);
+	--font-code: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console,
+		monospace;
+}
+* {
+	padding: 0;
+	margin: 0;
+}
+
+body {
+	font-family: Inter, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
+		Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+	font-family: var(--font-body);
+	font-size: 100%;
+	font-size: var(--base-font-size);
+	line-height: 1.75;
+	line-height: var(--font-content-line-height);
+	text-rendering: optimizeSpeed;
+}
+
+canvas {
+	background: #eee;
+	display: block;
+	margin: 0 auto;
+	
+}
