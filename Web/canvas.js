@@ -1,4 +1,4 @@
-const websocket = new WebSocket("ws://pixelartgan-d4tkwrdpmq-de.a.run.app/");
+const websocket = new WebSocket("wss://pixelartgan-d4tkwrdpmq-de.a.run.app/");
 const params = new URLSearchParams(window.location.search);
 let name = "noName";
 if (params.has("name")) {
