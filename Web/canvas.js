@@ -1,4 +1,4 @@
-const websocket = new WebSocket("ws://192.168.0.102:8001/");
+const websocket = new WebSocket("ws://pixelartgan-d4tkwrdpmq-de.a.run.app/");
 const params = new URLSearchParams(window.location.search);
 let name = "noName";
 if (params.has("name")) {
@@ -267,7 +267,6 @@ class OnlinePlayer {
 }
 
 function drawOnline(name) {
-	//console.log(`kaizz at ${players[name].PosX}`)
 	tempCtx.drawImage(
 		player,
 		24 * (Math.floor(time / 30) % 4),
