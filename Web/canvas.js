@@ -294,19 +294,9 @@ function receiveMoves(websocket) {
 		const event = JSON.parse(data);
 		switch (event.type) {
 			case "move":
-				//console.log(event.player + event.posX + event.posY);
-				// players[event.player].posX = event.posX;
-				// players[event.player].posY = event.posY;
-				//players.set(event.player,players[event.player].update(event.posX,event.posY))
 				let n = event.player
-				
-				// let np = new OnlinePlayer(event.player,event.posX,event.posY)
-				// players.set(event.player, np)
 				players.get(n).update(event.posX,event.posY)
 				console.log(players.get(n).show());
-				// players[n].PosX=event.posX
-				// players[n].posY=event.posY
-				//console.log(players[n].show())
 				break;
 			case "msg":
 				console.log(event.msg);
