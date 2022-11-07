@@ -141,7 +141,7 @@ let jump = false;
 
 function updateCanvas() {
 	draw();
-	
+
 	ctx.clearRect(0, 0, 480, 320);
 	ctx.drawImage(tempCanvas, 0, 0);
 }
@@ -190,7 +190,6 @@ function draw() {
 		24 * size,
 		24 * size
 	);
-	
 }
 
 let p2Pos = canvas.width / 2 + 100;
@@ -242,24 +241,23 @@ function drawOther() {
 
 	angry.src = angryurl[Math.floor(time++ / 15) % 4];
 	msg.src = msgurl[Math.floor(time++ / 30) % 6];
-	
+
 	for (let key of players.keys()) {
-		if(key!=name){
+		if (key != name) {
 			drawOnline(key);
 		}
-		
 	}
 }
 
 class OnlinePlayer {
-	constructor(n,x,y) {
+	constructor(n, x, y) {
 		this.name = n;
-		this.PosX = x;//240 - (24 * 2) / 2;
-		this.PosY = y;//320 - 24 * 2 - 30;
+		this.PosX = x; //240 - (24 * 2) / 2;
+		this.PosY = y; //320 - 24 * 2 - 30;
 	}
-	update(x,y){
-		this.PosX =x
-		this.PosY =y
+	update(x, y) {
+		this.PosX = x;
+		this.PosY = y;
 	}
 	show() {
 		return `${this.name} at (${this.PosX},${this.PosY})`;
@@ -294,8 +292,14 @@ function receiveMoves(websocket) {
 		const event = JSON.parse(data);
 		switch (event.type) {
 			case "move":
-				let n = event.player
-				players.get(n).update(event.posX,event.posY)
+				let n = event.player;
+				try {
+					players.get(n).update(event.posX, event.posY);
+				} catch (e) {
+					let p = new OnlinePlayer(n, event.posX, event.posY);
+					players.set(n, p);
+				}
+
 				console.log(players.get(n).show());
 				break;
 			case "msg":
@@ -303,12 +307,13 @@ function receiveMoves(websocket) {
 				break;
 			case "init":
 				console.log(event.name);
-				let p = new OnlinePlayer(event.name,216,242);
-				//players[event.name] = p;
-				players.set(event.name, p);
-				// players.set(event.name, p);
+				if(!players.has(event.name)){
+					let p = new OnlinePlayer(event.name, 216, 242);
+					players.set(event.name, p);
+				}
+
 				console.log(players.get(event.name).show());
-				
+
 				break;
 			default:
 				throw new Error(`Unsupported event type: ${event.type}.`);

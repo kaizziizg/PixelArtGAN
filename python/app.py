@@ -50,7 +50,10 @@ async def join(websocket,name):
     finally:
         print("someone disconnect")
         connected.remove(websocket)
-        players.remove(name)
+        try:
+            del players[name]
+        except KeyError:
+            pass
 
 
 async def handler(websocket):
