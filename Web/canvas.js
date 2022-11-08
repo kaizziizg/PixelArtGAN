@@ -10,11 +10,15 @@ console.log(`Hi ,${name}`);
 
 const canvas = document.getElementById("game");
 const ctx = document.getElementById("game").getContext("2d");
+
 // set cache canvas to fix flicker screen
 const tempCanvas = document.createElement("canvas");
 tempCanvas.width = 480;
 tempCanvas.height = 320;
 const tempCtx = tempCanvas.getContext("2d");
+tempCtx.fillStyle = "#ffffff"; //設定文字填滿顏色
+tempCtx.font = "20px sans-serif";
+tempCtx.textAlign = "center";
 // fix pixel art scaling
 ctx.imageSmoothingEnabled = false;
 tempCtx.imageSmoothingEnabled = false;
@@ -65,7 +69,34 @@ let leftPressed = false;
 let jumpPressed = false;
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-
+canvas.addEventListener(
+	"mousedown",
+	(e) => {
+		on_canvas_mouse_down(e);
+	},
+	false
+);
+canvas.addEventListener(
+	"mouseup",
+	(e) => {
+		on_canvas_mouse_up(e);
+	},
+	false
+);
+canvas.addEventListener(
+	"touchstart",
+	(e) => {
+		on_canvas_touch_start(e);
+	},
+	false
+);
+canvas.addEventListener(
+	"touchend",
+	(e) => {
+		on_canvas_touch_end(e);
+	},
+	false
+);
 // preload Image
 const loadImage = (src) =>
 	new Promise((resolve, reject) => {
@@ -94,7 +125,82 @@ const imageUrls = [
 Promise.all(imageUrls.map(loadImage)).then((images) => {
 	setInterval(updateCanvas, 1000 / 60);
 });
+//mouseHandler
+function canvas_read_mouse(canvas, e) {
+	let canvasRect = canvas.getBoundingClientRect();
+	canvas.tc_x1 = canvas.tc_x2;
+	canvas.tc_y1 = canvas.tc_y2;
+	canvas.tc_x2 = e.clientX - canvasRect.left;
+	canvas.tc_y2 = e.clientY - canvasRect.top;
+}
 
+function on_canvas_mouse_down(e) {
+	const mouseCheck = new Promise((resolve, reject) => {
+		// first call
+		canvas_read_mouse(canvas, e);
+		canvas.tc_md = true;
+		console.log("click!")
+		resolve()
+	});
+	mouseCheck.then(() => {
+		//FIXME : why call canvas_read_mouse once will return previous step axis? 
+		// second call
+		canvas_read_mouse(canvas, e);
+		canvas.tc_md = true;
+		
+		console.log(canvas.tc_x1, canvas.tc_y1);
+		if (canvas.tc_x1 < 240) {
+			leftPressed = true;
+		} else if (canvas.tc_x1 > 240) {
+			rightPressed = true;
+		}
+	});
+}
+
+function on_canvas_mouse_up(e) {
+	canvas.tc_md = false;
+	rightPressed = false;
+	leftPressed = false;
+}
+//touchHandler
+function canvas_read_touch(canvas, e) {
+	let canvasRect = canvas.getBoundingClientRect();
+	let touch = event.touches[0];
+	canvas.tc_x1 = canvas.tc_x2;
+	canvas.tc_y1 = canvas.tc_y2;
+	canvas.tc_x2 =
+		touch.pageX - document.documentElement.scrollLeft - canvasRect.left;
+	canvas.tc_y2 =
+		touch.pageY - document.documentElement.scrollTop - canvasRect.top;
+}
+function on_canvas_touch_start(e) {
+	const touchCheck = new Promise((resolve, reject) => {
+		// first call
+		canvas_read_touch(canvas, e);
+		canvas.tc_md = true;
+		resolve()
+	});
+
+	touchCheck.then(() => {
+		//FIXME : why call canvas_read_mouse once will return previous step axis? 
+		// second call
+		canvas_read_touch(canvas, e);
+		canvas.tc_md = true;
+		
+		if (canvas.tc_x1 < 240) {
+			leftPressed = true;
+		} else if (canvas.tc_x1 > 240) {
+			rightPressed = true;
+		}
+	});
+	
+}
+
+function on_canvas_touch_end(e) {
+	canvas.tc_md = false;
+	rightPressed = false;
+	leftPressed = false;
+}
 //keyHandler
 function keyDownHandler(e) {
 	if (e.keyCode == 39) {
@@ -141,13 +247,15 @@ let jump = false;
 
 function updateCanvas() {
 	draw();
-
 	ctx.clearRect(0, 0, 480, 320);
 	ctx.drawImage(tempCanvas, 0, 0);
 }
 
+function drawText(player) {
+	tempCtx.fillText(player.name, player.PosX + 25, player.PosY - 5);
+}
 function draw() {
-	if (rightPressed && playerPosx < canvas.width - 24 * size) {
+	if (rightPressed && playerPosx < 440) {
 		playerPosx += speed;
 		const event = {
 			type: "move",
@@ -179,6 +287,7 @@ function draw() {
 
 	tempCtx.drawImage(bg, 0, 0);
 	drawOther();
+
 	tempCtx.drawImage(
 		player,
 		24 * (Math.floor(time++ / 30) % 4),
@@ -190,6 +299,7 @@ function draw() {
 		24 * size,
 		24 * size
 	);
+	tempCtx.fillText(name, playerPosx + 25, playerPosy - 5);
 }
 
 let p2Pos = canvas.width / 2 + 100;
@@ -276,6 +386,7 @@ function drawOnline(name) {
 		24 * size,
 		24 * size
 	);
+	drawText(players.get(name));
 }
 
 function initGame(websocket) {
@@ -300,14 +411,14 @@ function receiveMoves(websocket) {
 					players.set(n, p);
 				}
 
-				console.log(players.get(n).show());
+				//console.log(players.get(n).show());
 				break;
 			case "msg":
 				console.log(event.msg);
 				break;
 			case "init":
 				console.log(event.name);
-				if(!players.has(event.name)){
+				if (!players.has(event.name)) {
 					let p = new OnlinePlayer(event.name, 216, 242);
 					players.set(event.name, p);
 				}
