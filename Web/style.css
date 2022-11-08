@@ -27,6 +27,10 @@ table{
 	width: 50%;
 }
 html{
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-o-user-select:none;
+	user-select:none;
 	overflow-x: hidden;
 	width: 100%;
 }
